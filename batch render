@@ -1,0 +1,66 @@
+import rhinoscriptsyntax as rs
+import scriptcontext as sc
+import Rhino as rc
+import System.DateTime
+
+folder = rs.BrowseForFolder(message="Browse for folder", title="Save Frames")
+if folder is None: quit()
+
+
+startMonth = rs.GetInteger("Start month",06)
+startDay = rs.GetInteger("Start day",21)
+startHour = rs.GetInteger("Start hour",12)
+startMin = rs.GetInteger("Start min",00)
+gateway = rs.GetInteger("End time?",0)
+
+if gateway == 1:
+    endHour = rs.GetInteger("end hour")
+    endMin = rs.GetInteger("end min",0)
+    stepLengthHrs = rs.GetReal("length of steps in hours",1)
+    stepLength = System.TimeSpan.FromHours(stepLengthHrs)
+
+startTime = System.DateTime(2015,startMonth,startDay,startHour,startMin,0)
+
+if gateway == 1:
+    endTime = System.DateTime(2015,startMonth,startDay,endHour,endMin,0)
+    
+print startTime
+sun = sc.doc.Lights.Sun
+lat = sun.Latitude
+lon = sun.Longitude 
+
+eType = rs.GetString(message = "Input the view filter!")
+eViews = []
+eLayerStates = []
+Outpath = str(folder) #'C:\Users\s-rasher\Desktop\dump'
+plugin = rs.GetPlugInObject("Rhino Bonus Tools")
+if plugin is not None:
+    eViews = rs.NamedViews()
+    eLayerStates = plugin.LayerStateNames()
+    for i in range(len(eViews)):
+        if eType in eViews[i]:
+            rs.RestoreNamedView(eViews[i])
+            for j in range(len(eLayerStates)):
+                currTime = startTime
+                sun.SetPosition(currTime, lat, lon)
+                plugin.RestoreLayerState(eLayerStates[j])
+                rs.Command("!_-Render")
+                name = str(eViews[i]) + str(eLayerStates[j]) + str(currTime.Hour) + str(currTime.Minute)
+                command = "_-SaveRenderWindowAs \"" + Outpath + "\\" + name + ".png\""
+                rs.Command(command)
+                rs.Command("_-CloseRenderWindow")
+                if gateway == 0:
+                    break
+                else:
+                    while currTime < endTime:
+                        currTime = currTime + stepLength
+                        print currTime
+                        sun.SetPosition(currTime, lat, lon)
+                        rs.Command("!_-Render")
+                        name = str(eViews[i]) + str(eLayerStates[j]) + str(currTime.Hour) + str(currTime.Minute)
+                        command = "_-SaveRenderWindowAs \"" + Outpath + "\\" + name + ".png\""
+                        rs.Command(command)
+                        rs.Command("_-CloseRenderWindow")
+
+
+

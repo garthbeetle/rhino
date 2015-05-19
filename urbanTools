@@ -1,0 +1,44 @@
+#typeSetter
+
+import rhinoscriptsyntax as rs
+
+crva = rs.GetObjects(preselect = True, filter = rs.filter.curve)
+type = rs.GetString("gimme type")
+
+for crv in crva:
+    rs.SetUserText(crv, "type", type)
+
+#makeBuilding
+import rhinoscriptsyntax as rs
+import Rhino
+
+crva = rs.GetObjects(message = "gimme the curves making up the buildings", filter = rs.filter.curve, preselect = True)
+crv = crva
+text = rs.GetDocumentUserText('buildings')
+
+andThen =  len(str.split(text))
+print andThen
+text+=' '+str(andThen)
+for curv in crv:
+    rs.SetUserText(curv, "buildingNumber", str(andThen))
+
+rs.SetDocumentUserText('buildings', text)
+
+#floorSetter
+import rhinoscriptsyntax as rs
+
+crva = rs.GetCurveObject(preselect = True)
+floors = rs.GetInteger("gimme floors")
+height = rs.GetReal(message = "gimme floor to floor", number = 3)
+
+crv = crva[0]
+
+pta = rs.CurveAreaCentroid(crv)
+ptb = pta[0]
+pt = rs.coerce3dpoint(ptb)
+pt2 = [pt.X,pt.Y,floors*height]
+vec = rs.VectorCreate(pt2, pt)
+
+rs.MoveObject(crv, vec)
+rs.SetUserText(crv, 'floorTofloor', height)
+

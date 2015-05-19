@@ -42,3 +42,32 @@ vec = rs.VectorCreate(pt2, pt)
 rs.MoveObject(crv, vec)
 rs.SetUserText(crv, 'floorTofloor', height)
 
+#clear user text
+import rhinoscriptsyntax as rs
+
+crva = rs.GetObjects(preselect = True, filter = rs.filter.curve)
+types = rs.GetString("kill what?", defaultString = "all")
+
+if types == "all":
+    for crv in crva:
+        types = rs.GetUserText(crv)
+        for type in types:
+            rs.SetUserText(crv, type)
+else: 
+    for crv in crva:
+        rs.SetUserText(crv, type)
+
+#layerStateCreator
+import rhinoscriptsyntax as rs
+import scriptcontext
+
+StateCreate = rs.GetLayers()
+plugin = rs.GetPlugInObject("Rhino Bonus Tools")
+
+for i in range(len(StateCreate)):
+    rs.LayerVisible(StateCreate[i], False)
+for i in range(len(StateCreate)):
+    rs.LayerVisible(StateCreate[i], True)
+    plugin.SaveLayerState(str(i))
+    rs.LayerVisible(StateCreate[i], False)
+
